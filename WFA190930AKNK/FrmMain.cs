@@ -7,12 +7,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WFA190930AKNK.Properties;
 
 namespace WFA190930AKNK
 {
     public partial class FrmMain : Form
     {
         static Random rnd = new Random();
+
+        static Color[] szinek =
+        {
+            Color.White,
+            Color.Blue,
+            Color.Green,
+            Color.Red,
+            Color.Indigo,
+            Color.Brown,
+            Color.Cyan,
+            Color.Purple,
+            Color.Black
+        };
+
+        bool elso = true;
 
         public int palyaX;
         public int palyaY;
@@ -39,37 +55,80 @@ namespace WFA190930AKNK
                 {
                     palya[s, o] = new AknButton();
                     palya[s, o].SetBounds(o * 50, s * 50, 50, 50);
-                    palya[s, o].Akna = rnd.Next(100) < 25;
-                    palya[s, o].Click += AknClick;
+                    palya[s, o].Akna = rnd.Next(100) < 10;
+                    //palya[s, o].Click += AknClick;
+                    palya[s, o].MouseUp += AknMouseClick;
+
+                    palya[s, o].ImageAlign = ContentAlignment.MiddleCenter;
+                    palya[s, o].BackgroundImageLayout = ImageLayout.Stretch;
+
+                    palya[s, o].Font = new Font("Consolas", 20F, FontStyle.Bold);
 
                     palya[s, o].X = s;
                     palya[s, o].Y = o;
-
-                    palya[s, o].Text = $"[{s};{o}]";
 
                     this.Controls.Add(palya[s, o]);
                 }
             }
         }
 
-        private void AknClick(object sender, EventArgs e)
+        private void AknMouseClick(object sender, MouseEventArgs e)
         {
-            (sender as AknButton).Flag = true;
-
-            if ((sender as AknButton).Akna)
+            if (e.Button == MouseButtons.Right)
             {
-                (sender as AknButton).BackColor = Color.Red;
+                (sender as AknButton).BackgroundImage = Resources.zaszlo;
             }
             else
             {
-                int korbeDb = Vizsgal(sender as AknButton);
+                if (elso && (sender as AknButton).Akna)
+                {
+                    int x, y;
+                    do
+                    {
+                        x = rnd.Next(palyaX);
+                        y = rnd.Next(palyaY);
+                    } while (!palya[x, y].Akna);
 
-                (sender as AknButton).BackColor = Color.Green;
-                (sender as AknButton).Text = korbeDb + "";
+                    palya[x, y].Akna = true;
+                    (sender as AknButton).Akna = false;
+                }
+                elso = false;
+
+                (sender as AknButton).BackColor = Color.White;
+                (sender as AknButton).Flag = true;
+
+                if ((sender as AknButton).Akna)
+                {
+                    (sender as AknButton).BackgroundImage = Resources.akna;
+                }
+                else
+                {
+                    int korbeDb = Vizsgal(sender as AknButton, e);
+
+                    if (korbeDb != 0) (sender as AknButton).Text = korbeDb + "";
+                }
+            }
+
+            if (IsWin())
+            {
+                MessageBox.Show("NYERTÉL!");
+                Application.Restart();
             }
         }
 
-        private int Vizsgal(AknButton btn)
+        private bool IsWin()
+        {
+            for (int s = 0; s < palya.GetLength(0); s++)
+            {
+                for (int o = 0; o < palya.GetLength(1); o++)
+                {
+                    if (palya[s, o].Akna && palya[s, o].BackgroundImage != Resources.zaszlo) return false;
+                }
+            }
+            return true;
+        }
+
+        private int Vizsgal(AknButton btn, MouseEventArgs e)
         {
             int dbAkn = 0;
             var kattintani = new List<AknButton>();
@@ -93,9 +152,11 @@ namespace WFA190930AKNK
             {
                 foreach (var b in kattintani)
                 {
-                    AknClick(b, null);
+                    AknMouseClick(b, e);
                 }
             }
+
+            btn.ForeColor = szinek[dbAkn];
 
             return dbAkn;
         }

@@ -54,14 +54,50 @@ namespace WFA190930AKNK
 
         private void AknClick(object sender, EventArgs e)
         {
-            if((sender as AknButton).Akna)
+            (sender as AknButton).Flag = true;
+
+            if ((sender as AknButton).Akna)
             {
                 (sender as AknButton).BackColor = Color.Red;
             }
             else
             {
+                int korbeDb = Vizsgal(sender as AknButton);
+
                 (sender as AknButton).BackColor = Color.Green;
+                (sender as AknButton).Text = korbeDb + "";
             }
+        }
+
+        private int Vizsgal(AknButton btn)
+        {
+            int dbAkn = 0;
+            var kattintani = new List<AknButton>();
+
+            for (int s = btn.X - 1; s <= btn.X + 1; s++)
+            {
+                for (int o = btn.Y - 1; o <= btn.Y + 1; o++)
+                {
+                    if (o >= 0 && s >= 0 && s < palyaX && o < palyaY)
+                    {
+                        if(palya[s, o].Akna) dbAkn++;
+                        else if (!palya[s, o].Flag)
+                        {
+                            kattintani.Add(palya[s, o]);
+                        }
+                    }
+                }
+            }
+
+            if (dbAkn == 0)
+            {
+                foreach (var b in kattintani)
+                {
+                    AknClick(b, null);
+                }
+            }
+
+            return dbAkn;
         }
     }
 }
